@@ -23,8 +23,8 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
     avatarImage: {
-      type: String,
-      default: "",
+      data: Buffer,
+      contentType: String,
     },
   },
   { timestamps: true }

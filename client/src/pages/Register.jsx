@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { registerRoute } from "../utils/APIRoutes";
+import { MdAddAPhoto } from "react-icons/md";
 
 const Register = () => {
   const [values, setValues] = useState({
@@ -15,6 +16,8 @@ const Register = () => {
     password: "",
     confirmPassword: "",
   });
+  const [avatarImage, setAvatarImage] = useState("");
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
   const toastOptions = {
     position: "bottom-right",
@@ -26,31 +29,60 @@ const Register = () => {
 
   const handleChange = (event) => {
     setValues({ ...values, [event.target.name]: event.target.value });
-    console.log(values);
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const productData = new FormData();
+    productData.append("username", values.username);
+    productData.append("email", values.email);
+    productData.append("password", values.password);
+    productData.append("avatarImage", avatarImage);
     try {
-      const { email, username, password } = values;
-      const register = await axios.post(registerRoute, {
-        email,
-        username,
-        password,
-      });
+      console.log(productData);
+      const register = await axios.post(registerRoute, productData);
+      console.log(values);
+      setError("");
       navigate("/");
     } catch (error) {
-      console.log(error.response.data.message);
+      //console.log(error.response.data.message);
+      setError(error?.response?.data.message);
       toast.error(error.response.data.message);
     }
   };
   return (
     <FormContainer>
-      <form onSubmit={handleSubmit}>
+      <form
+        onSubmit={handleSubmit}
+        action="/upload"
+        method="post"
+        encType="multipart/form-data"
+      >
         <div className="brand">
           <img src={Logo} alt="Logo" />
           <h1>snappy</h1>
         </div>
+        <label>
+          {avatarImage ? (
+            <img
+              src={URL.createObjectURL(avatarImage)}
+              alt="Product_Photo"
+              className="img img-responsive"
+            />
+          ) : (
+            <MdAddAPhoto className="photo-add" />
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            name="avatarImage"
+            onChange={(e) => {
+              setAvatarImage(e.target.files[0]);
+              console.log(e.target.files[0]);
+            }}
+            hidden
+          />
+        </label>
         <input
           type="text"
           name="username"
@@ -78,8 +110,9 @@ const Register = () => {
         <button type="submit" onClick={handleSubmit}>
           Register
         </button>
+        {error && <p className="error">{error}</p>}
         <span>
-          Already have an account ? <Link to="/login">Login</Link>
+          Already have an account ? <Link to="/">Login</Link>
         </span>
       </form>
     </FormContainer>
@@ -117,6 +150,22 @@ const FormContainer = styled.div`
     border-radius: 2rem;
     padding: 3rem 5rem;
   }
+  .photo-add {
+    color: #333350;
+    font-size: 5rem;
+    cursor: pointer;
+    text-align: center;
+  }
+  label {
+    display: flex;
+    justify-content: center;
+    .img-responsive {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+  }
   input {
     background-color: transparent;
     padding: 1rem;
@@ -143,6 +192,9 @@ const FormContainer = styled.div`
     &:hover {
       background-color: #4e0eff;
     }
+  }
+  .error {
+    color: red;
   }
   span {
     color: white;
